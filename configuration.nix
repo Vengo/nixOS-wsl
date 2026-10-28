@@ -29,6 +29,18 @@
     vim
   ];
 
+  # Set multi-GPU NCCL defaults for dual RTX 3090s in WSL2
+  environment.sessionVariables = {
+    NCCL_P2P_DISABLE = "1";
+    NCCL_IB_DISABLE = "1";
+    OMP_NUM_THREADS = "4";
+  };
+
+  # Short alias to rebuild your flake from anywhere
+  programs.bash.shellAliases = {
+    nrs = "sudo nixos-rebuild switch --flake ~/nixos-config#nixos";
+  };
+
   nixpkgs.config.allowUnfree = true;
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
