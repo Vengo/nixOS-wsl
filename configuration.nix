@@ -8,6 +8,7 @@
 
     # Fix for WSL 2.9.8+ wsl-mnt-guard.service
     extraBin = [
+      { src = "${pkgs.bash}/bin/bash"; }
       { src = "${pkgs.coreutils}/bin/true"; }
       { src = "${pkgs.util-linux}/bin/mount"; }
     ];
@@ -21,20 +22,27 @@
   environment.systemPackages = with pkgs; [
     git
     uv
-    python312
+    python3
+    tmux
     nvtopPackages.nvidia # Live terminal monitor for both RTX 3090s
     htop
     wget
     curl
     vim
+    antigravity-cli
   ];
 
-  # Set multi-GPU NCCL defaults for dual RTX 3090s in WSL2
-  environment.sessionVariables = {
-    NCCL_P2P_DISABLE = "1";
-    NCCL_IB_DISABLE = "1";
-    OMP_NUM_THREADS = "4";
+  services.openssh = {
+    enable = true;
+    ports = [ 2222 ];
   };
+
+  # Set multi-GPU NCCL defaults for dual RTX 3090s in WSL2
+#  environment.sessionVariables = {
+#    NCCL_P2P_DISABLE = "1";
+#    NCCL_IB_DISABLE = "1";
+#    OMP_NUM_THREADS = "4";
+#  };
 
   # Short alias to rebuild your flake from anywhere
   programs.bash.shellAliases = {
@@ -61,13 +69,18 @@
     zlib
     glib
     libGL
+    openssl
   ]) ++ config.hardware.graphics.extraPackages;
-
-  # Expose WSL drivers + nix-ld libraries to dynamically linked wheels (PyTorch, Triton, etc.)
-  environment.extraInit = ''
-    export PATH="/usr/lib/wsl/lib:$PATH"
+  
+  # Runs for BOTH interactive shells AND non-interactive Antigravity subagent commands
+  programs.bash.shellInit = ''
+    export PATH="/usr/lib/wsl/lib:/run/current-system/sw/bin:$HOME/.nix-profile/bin:$PATH"
     export LD_LIBRARY_PATH="/usr/lib/wsl/lib:/run/opengl-driver/lib:$NIX_LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
+    export NCCL_P2P_DISABLE="1"
+    export NCCL_IB_DISABLE="1"
+    export OMP_NUM_THREADS="4"
   '';
+
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
