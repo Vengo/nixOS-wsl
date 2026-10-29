@@ -35,7 +35,13 @@
   services.openssh = {
     enable = true;
     ports = [ 2222 ];
+    openFirewall = true;
+    settings = {
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+    };
   };
+  
 
   # Set multi-GPU NCCL defaults for dual RTX 3090s in WSL2
 #  environment.sessionVariables = {
